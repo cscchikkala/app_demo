@@ -1,0 +1,87 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {},
+    "variables": {},
+    "resources": [
+        {
+    "name": "demoappserviceplan1",
+    "type": "Microsoft.Web/serverfarms",
+    "apiVersion": "2018-02-01",
+    "location": "[resourceGroup().location]",
+    "sku": {
+        "name": "F1",
+        "capacity": 1
+    },
+    "tags": {
+        "displayName": "demoappserviceplan1"
+    },
+    "properties": {
+        "name": "demoappserviceplan1"
+    }
+},
+{
+    "name": "webAppdemo389",
+    "type": "Microsoft.Web/sites",
+    "apiVersion": "2016-08-01",
+    "location": "[resourceGroup().location]",
+    "tags": {
+        "[concat('hidden-related:', resourceGroup().id, '/providers/Microsoft.Web/serverfarms/appServicePlan1')]": "Resource",
+        "displayName": "webAppdemo389"
+    },
+    "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', 'demoappserviceplan1')]"
+    ],
+    "properties": {
+        "name": "webAppdemo389",
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', 'demoappserviceplan1')]"
+    }
+},
+{
+    
+        
+        "name": "webAppdemo389",
+        "type": "Microsoft.Web/sites",
+        "apiVersion": "2016-08-01",
+        "location": "[resourceGroup().location]",
+        "tags": {
+            "[concat('hidden-related:', resourceGroup().id, '/providers/Microsoft.Web/serverfarms/demoappserviceplan1' )]": "Resource",
+            "displayName": "Website"
+        },
+        "dependsOn": [
+            "[resourceId('Microsoft.Web/serverfarms/', 'demoappserviceplan1')]",
+            "[resourceId('microsoft.insights/components/', 'webAppdemo389')]"
+        ],
+        "properties": {
+            "name": "webAppdemo389",
+            "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', 'demoappserviceplan1')]"
+        },
+        "resources": [
+            {
+                "apiVersion": "2015-08-01",
+                "name": "appsettings",
+                "type": "config",
+                "dependsOn": [
+                    "[resourceId('Microsoft.Web/Sites', 'webAppdemo389')]",
+                    "Microsoft.ApplicationInsights.AzureWebSites"
+                ],
+                "properties": {
+                    "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(concat('microsoft.insights/components/', 'webAppdemo389')).InstrumentationKey]"
+                }
+            },
+            {
+                // this bit installs application insights extension
+                "apiVersion": "2015-08-01",
+                "name": "Microsoft.ApplicationInsights.AzureWebSites",
+                "type": "siteextensions",
+                "dependsOn": [
+                    "[resourceId('Microsoft.Web/Sites', 'webAppdemo389')]"
+                ],
+                "properties": {
+                }
+            }
+        ]
+    }
+    ]
+}
+ 
